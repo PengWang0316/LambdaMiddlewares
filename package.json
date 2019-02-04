@@ -23,12 +23,19 @@
     "url": "git+https://github.com/PengWang0316/LambdaMiddlewares.git"
   },
   "keywords": [
-    "lambda", "middleware"
+    "lambda",
+    "middleware"
   ],
   "bugs": {
     "url": "https://github.com/PengWang0316/LambdaMiddlewares/issues"
   },
   "homepage": "https://github.com/PengWang0316/LambdaMiddlewares#readme",
+  "peerDependencies": {
+    "@kevinwang0316/cloudwatch": "^1.0.4",
+    "@kevinwang0316/jwt-verify": "^1.0.2",
+    "@kevinwang0316/log": "^1.0.1",
+    "@kevinwang0316/mongodb-helper": "^1.0.16"
+  },
   "dependencies": {},
   "devDependencies": {
     "@babel/cli": "^7.2.3",

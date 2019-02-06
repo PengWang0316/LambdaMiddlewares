@@ -1,7 +1,10 @@
-import cloudwatch from '@kevinwang0316/cloudwatch';
-import { initialConnects } from '@kevinwang0316/mongodb-helper';
 import sanitize from 'mongo-sanitize';
+import cloudwatch from '@kevinwang0316/cloudwatch';
+import verifyJWT from '@kevinwang0316/jwt-verify';
+import { initialConnects } from '@kevinwang0316/mongodb-helper';
 import log from '@kevinwang0316/log';
+
+const { jwtName } = process.env;
 
 // The middleware to flush the metrics to the CloudWatch
 export const flushMetrics = {
@@ -60,4 +63,26 @@ export const sampleLogging = (option = { sampleRate: 0.01 }) => { // The defualt
       next(handler.error);
     },
   };
+};
+
+export const verifyUser = {
+  before: (handler, next) => {
+    let jwtMessage;
+    if (handler.event.queryStringParameters && handler.event.queryStringParameters[jwtName]) jwtMessage = handler.event.queryStringParameters[jwtName];
+    else if (handler.event.body) {
+      const message = JSON.parse(handler.event.body)[jwtName];
+      if (message) jwtMessage = message;
+    }
+    const user = jwtMessage
+      ? verifyJWT(jwtMessage, handler.context.jwtSecret)
+      : false;
+    if (user) {
+      // Give a default role if the jwt is missing role information
+      handler.context.user = user.role === undefined || user.role === null ? { ...user, role: 3 } : user;
+      next();
+    } else {
+      log.info(`Invalid user tried to call ${handler.context.functionName}`);
+      handler.callback(null, { body: 'Invalid User' });
+    }
+  },
 };

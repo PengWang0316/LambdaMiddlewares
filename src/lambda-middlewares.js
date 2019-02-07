@@ -1,6 +1,6 @@
 import sanitize from 'mongo-sanitize';
 import cloudwatch from '@kevinwang0316/cloudwatch';
-import verifyJWT from '@kevinwang0316/jwt-verify';
+import verify from '@kevinwang0316/jwt-verify';
 import { initialConnects } from '@kevinwang0316/mongodb-helper';
 import log from '@kevinwang0316/log';
 
@@ -65,7 +65,7 @@ export const sampleLogging = (option = { sampleRate: 0.01 }) => { // The defualt
   };
 };
 
-export const verifyUser = {
+export const verifyJWT = {
   before: (handler, next) => {
     let jwtMessage;
     if (handler.event.queryStringParameters && handler.event.queryStringParameters[jwtName]) jwtMessage = handler.event.queryStringParameters[jwtName];
@@ -74,7 +74,7 @@ export const verifyUser = {
       if (message) jwtMessage = message;
     }
     const user = jwtMessage
-      ? verifyJWT(jwtMessage, handler.context.jwtSecret)
+      ? verify(jwtMessage, handler.context.jwtSecret)
       : false;
     if (user) {
       // Give a default role if the jwt is missing role information

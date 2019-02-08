@@ -3,6 +3,7 @@ process.env.jwtName = 'jwtMessage';
 const sanitize = require('mongo-sanitize');
 const verify = require('@kevinwang0316/jwt-verify');
 const { info } = require('@kevinwang0316/log');
+const cloudwatch = require('@kevinwang0316/cloudwatch');
 
 const {
   verifyJWT, mongoSanitize, sampleLogging, initializeMongodb, flushMetrics,
@@ -12,6 +13,7 @@ const {
 jest.mock('mongo-sanitize', () => jest.fn());
 jest.mock('@kevinwang0316/jwt-verify', () => jest.fn().mockReturnValue(false));
 jest.mock('@kevinwang0316/log', () => ({ info: jest.fn() }));
+jest.mock('@kevinwang0316/cloudwatch', () => ({}));
 
 describe('lambda-middlewares mongoSanitize', () => {
   test('sanitize without queryStringParameters and body', () => {
@@ -189,5 +191,37 @@ describe('verity-user middleware', () => {
     expect(info).toHaveBeenLastCalledWith('Invalid user tried to call functionName');
     expect(mockCallback).toHaveBeenCalledTimes(1);
     expect(mockCallback).toHaveBeenLastCalledWith(null, { body: 'Invalid User' });
+  });
+});
+
+describe('flushMetrics', () => {
+  test('after', () => {
+    const cloudwatchLib = require('@kevinwang0316/cloudwatch');
+    const mockNext = jest.fn();
+    const mockThen = jest.fn().mockImplementation(cb => cb());
+    const mockFlush = jest.fn().mockReturnValue({ then: mockThen });
+    cloudwatchLib.flush = mockFlush;
+
+    flushMetrics.after(null, mockNext);
+
+    expect(mockFlush).toHaveBeenCalledTimes(1);
+    expect(mockThen).toHaveBeenCalledTimes(1);
+    expect(mockNext).toHaveBeenCalledTimes(1);
+  });
+
+  test('onError', () => {
+    const cloudwatchLib = require('@kevinwang0316/cloudwatch');
+    const handler = { error: 'error message' };
+    const mockNext = jest.fn();
+    const mockThen = jest.fn().mockImplementation(cb => cb());
+    const mockFlush = jest.fn().mockReturnValue({ then: mockThen });
+    cloudwatchLib.flush = mockFlush;
+
+    flushMetrics.onError(handler, mockNext);
+
+    expect(mockFlush).toHaveBeenCalledTimes(1);
+    expect(mockThen).toHaveBeenCalledTimes(1);
+    expect(mockNext).toHaveBeenCalledTimes(1);
+    expect(mockNext).toHaveBeenLastCalledWith(handler.error);
   });
 });

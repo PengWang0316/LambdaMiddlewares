@@ -3,10 +3,11 @@ process.env.jwtName = 'jwtMessage';
 const sanitize = require('mongo-sanitize');
 const verify = require('@kevinwang0316/jwt-verify');
 const { info } = require('@kevinwang0316/log');
-const cloudwatch = require('@kevinwang0316/cloudwatch');
+// const cloudwatch = require('@kevinwang0316/cloudwatch');
+// const { initialConnects } = require('@kevinwang0316/mongodb-helper');
 
 const {
-  verifyJWT, mongoSanitize, sampleLogging, initializeMongodb, flushMetrics,
+  verifyJWT, mongoSanitize, sampleLogging, initializeMongoDB, flushMetrics,
 } = require('../src/lambda-middlewares');
 
 
@@ -14,6 +15,7 @@ jest.mock('mongo-sanitize', () => jest.fn());
 jest.mock('@kevinwang0316/jwt-verify', () => jest.fn().mockReturnValue(false));
 jest.mock('@kevinwang0316/log', () => ({ info: jest.fn() }));
 jest.mock('@kevinwang0316/cloudwatch', () => ({}));
+jest.mock('@kevinwang0316/mongodb-helper', () => ({}));
 
 describe('lambda-middlewares mongoSanitize', () => {
   test('sanitize without queryStringParameters and body', () => {
@@ -223,5 +225,24 @@ describe('flushMetrics', () => {
     expect(mockThen).toHaveBeenCalledTimes(1);
     expect(mockNext).toHaveBeenCalledTimes(1);
     expect(mockNext).toHaveBeenLastCalledWith(handler.error);
+  });
+});
+
+describe('initializeMongoDB', () => {
+  test('before', () => {
+    const mongodbHelper = require('@kevinwang0316/mongodb-helper');
+    const mockThen = jest.fn().mockImplementation(cb => cb());
+    const mockInitialConnects = jest.fn().mockReturnValue({ then: mockThen });
+    mongodbHelper.initialConnects = mockInitialConnects;
+    const mockNext = jest.fn();
+    const handler = { context: { dbUrl: 'url', dbName: 'name' } };
+
+    initializeMongoDB.before(handler, mockNext);
+
+    expect(mockInitialConnects).toHaveBeenCalledTimes(1);
+    expect(mockInitialConnects)
+      .toHaveBeenLastCalledWith(handler.context.dbUrl, handler.context.dbName);
+    expect(mockThen).toHaveBeenCalledTimes(1);
+    expect(mockNext).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,8 +1,9 @@
 process.env.jwtName = 'jwtMessage';
 
+const sinon = require('sinon');
 const sanitize = require('mongo-sanitize');
 const verify = require('@kevinwang0316/jwt-verify');
-const { info } = require('@kevinwang0316/log');
+const { info, error } = require('@kevinwang0316/log');
 // const cloudwatch = require('@kevinwang0316/cloudwatch');
 // const { initialConnects } = require('@kevinwang0316/mongodb-helper');
 
@@ -13,7 +14,7 @@ const {
 
 jest.mock('mongo-sanitize', () => jest.fn());
 jest.mock('@kevinwang0316/jwt-verify', () => jest.fn().mockReturnValue(false));
-jest.mock('@kevinwang0316/log', () => ({ info: jest.fn() }));
+jest.mock('@kevinwang0316/log', () => ({ info: jest.fn(), error: jest.fn() }));
 jest.mock('@kevinwang0316/cloudwatch', () => ({}));
 jest.mock('@kevinwang0316/mongodb-helper', () => ({}));
 
@@ -54,6 +55,11 @@ describe('lambda-middlewares mongoSanitize', () => {
 
 describe('verity-user middleware', () => {
   beforeEach(() => {
+    info.mockClear();
+    verify.mockClear();
+  });
+
+  afterAll(() => {
     info.mockClear();
     verify.mockClear();
   });
@@ -244,5 +250,64 @@ describe('initializeMongoDB', () => {
       .toHaveBeenLastCalledWith(handler.context.dbUrl, handler.context.dbName);
     expect(mockThen).toHaveBeenCalledTimes(1);
     expect(mockNext).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('sampleLogging', () => {
+  beforeEach(() => {
+    error.mockClear();
+  });
+
+  afterAll(() => {
+    error.mockClear();
+  });
+
+  test('before and after default sampleRate and random less than rate', () => {
+    process.env.log_level = 'ERROR';
+    const mockNext = jest.fn();
+    const stub = sinon.stub(Math, 'random').returns(0);
+
+    const middleware = sampleLogging();
+    middleware.before(null, mockNext);
+
+    expect(process.env.log_level).toBe('DEBUG');
+    expect(mockNext).toHaveBeenCalledTimes(1);
+
+    middleware.after(null, mockNext);
+
+    expect(process.env.log_level).toBe('ERROR');
+    expect(mockNext).toHaveBeenCalledTimes(2);
+
+    stub.restore();
+  });
+
+  test('before customized sampleRate and random greater than rate', () => {
+    process.env.log_level = 'ERROR';
+    const mockNext = jest.fn();
+    const stub = sinon.stub(Math, 'random').returns(0.5);
+
+    const middleware = sampleLogging({ sampleRate: 0.3 });
+    middleware.before(null, mockNext);
+
+    expect(process.env.log_level).toBe('ERROR');
+    expect(mockNext).toHaveBeenCalledTimes(1);
+
+    stub.restore();
+  });
+
+  test('onError', () => {
+    const handler = {
+      context: { awsRequestId: 'request id' },
+      event: { invocationEvent: 'something' },
+      error: 'error message',
+    };
+    const mockNext = jest.fn();
+
+    sampleLogging().onError(handler, mockNext);
+
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenLastCalledWith('Invocation failed', { awsRequestId: handler.context.awsRequestId, invocationEvent: JSON.stringify(handler.event) }, handler.error);
+    expect(mockNext).toHaveBeenCalledTimes(1);
+    expect(mockNext).toHaveBeenLastCalledWith(handler.error);
   });
 });

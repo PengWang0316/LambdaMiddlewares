@@ -292,6 +292,11 @@ describe('sampleLogging', () => {
     expect(process.env.log_level).toBe('ERROR');
     expect(mockNext).toHaveBeenCalledTimes(1);
 
+    middleware.after(null, mockNext);
+
+    expect(process.env.log_level).toBe('ERROR');
+    expect(mockNext).toHaveBeenCalledTimes(2);
+
     stub.restore();
   });
 

@@ -1,6 +1,6 @@
 {
   "name": "@kevinwang0316/lambda-middlewares",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A set of middlewares that helps Lambda functions.",
   "scripts": {
     "coveralls": "cat ./coverage/lcov.info | node node_modules/.bin/coveralls",

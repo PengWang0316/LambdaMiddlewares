@@ -9,11 +9,14 @@ Several middlewares for Lambda functions.
 
 This library is working with several other packages.
 The peer dependencies list:
-- @kevinwang0316/cloudwatch
-- @kevinwang0316/jwt-verify
-- @kevinwang0316/log
-- @kevinwang0316/mongodb-helper
-- mongo-sanitize
+- @kevinwang0316/cloudwatch (if use flushMetrics)
+- aws-sdk (if use flushMetrics)
+- aws-xray-sdk (if use flushMetrics)
+- @kevinwang0316/jwt-verify (if use verifyJWT)
+- @kevinwang0316/log (if use sampleLogging or verifyJWT)
+- @kevinwang0316/mongodb-helper (if use initializeMongoDB)
+- mongodb (if use initializeMongoDB)
+- mongo-sanitize (if use mongoSanitize)
 
 Please check your package.json file to make sure you have these packages or install them.
 

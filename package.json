@@ -35,7 +35,10 @@
     "@kevinwang0316/jwt-verify": "^1.0.2",
     "@kevinwang0316/log": "^1.0.1",
     "@kevinwang0316/mongodb-helper": "^1.0.16",
-    "mongo-sanitize": "^1.0.1"
+    "mongo-sanitize": "^1.0.1",
+    "aws-xray-sdk": "^2.2.0",
+    "mongodb": "^3.1.13",
+    "aws-sdk": "^2.388.0"
   },
   "dependencies": {},
   "devDependencies": {

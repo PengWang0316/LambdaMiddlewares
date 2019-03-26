@@ -1,4 +1,4 @@
-# MongoDB Helper
+# Lambda Middlewares
 
 Several middlewares for Lambda functions. 
 
@@ -47,4 +47,4 @@ module.exports = middy(lambdaHandler)
 
 # License
 
-Log is licensed under MIT License - see the [License file](https://github.com/PengWang0316/MongoDBHelper/blob/master/LambdaMiddlewares).
+LambdaMiddlewares is licensed under MIT License - see the [License file](https://github.com/PengWang0316/MongoDBHelper/blob/master/LambdaMiddlewares).

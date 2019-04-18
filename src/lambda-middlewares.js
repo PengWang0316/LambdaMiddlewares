@@ -2,6 +2,7 @@ import sanitize from 'mongo-sanitize';
 import cloudwatch from '@kevinwang0316/cloudwatch';
 import verify from '@kevinwang0316/jwt-verify';
 import { initialConnects } from '@kevinwang0316/mongodb-helper';
+import { initialPool } from '@kevinwang0316/mysql-helper';
 import log from '@kevinwang0316/log';
 
 const { jwtName } = process.env;
@@ -15,6 +16,15 @@ export const flushMetrics = {
 export const initializeMongoDB = {
   before: (handler, next) => {
     initialConnects(handler.context.dbUrl, handler.context.dbName).then(() => next());
+  },
+};
+
+export const initialMysqlPool = {
+  before: (handler, next) => {
+    const {
+      dbHost, dbUser, dbPassword, dbName,
+    } = handler.context;
+    initialPool(dbHost, dbUser, dbPassword, dbName).then(() => next());
   },
 };
 

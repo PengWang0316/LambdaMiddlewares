@@ -9,6 +9,7 @@ const { info, error } = require('@kevinwang0316/log');
 
 const {
   verifyJWT, mongoSanitize, sampleLogging, initializeMongoDB, flushMetrics,
+  initialMysqlPool,
 } = require('../src/lambda-middlewares');
 
 
@@ -17,6 +18,7 @@ jest.mock('@kevinwang0316/jwt-verify', () => jest.fn().mockReturnValue(false));
 jest.mock('@kevinwang0316/log', () => ({ info: jest.fn(), error: jest.fn() }));
 jest.mock('@kevinwang0316/cloudwatch', () => ({}));
 jest.mock('@kevinwang0316/mongodb-helper', () => ({}));
+jest.mock('@kevinwang0316/mysql-helper', () => ({}));
 
 describe('lambda-middlewares mongoSanitize', () => {
   test('sanitize without queryStringParameters and body', () => {
@@ -248,6 +250,34 @@ describe('initializeMongoDB', () => {
     expect(mockInitialConnects).toHaveBeenCalledTimes(1);
     expect(mockInitialConnects)
       .toHaveBeenLastCalledWith(handler.context.dbUrl, handler.context.dbName);
+    expect(mockThen).toHaveBeenCalledTimes(1);
+    expect(mockNext).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('initializeMysqlPool', () => {
+  test('before', () => {
+    const mongodbHelper = require('@kevinwang0316/mysql-helper');
+    const mockThen = jest.fn().mockImplementation(cb => cb());
+    const mockInitialConnects = jest.fn().mockReturnValue({ then: mockThen });
+    mongodbHelper.initialPool = mockInitialConnects;
+    const mockNext = jest.fn();
+    const handler = {
+      context: {
+        dbHost: 'host', dbUser: 'user', dbPassword: 'pw', dbName: 'databaseName',
+      },
+    };
+
+    initialMysqlPool.before(handler, mockNext);
+
+    expect(mockInitialConnects).toHaveBeenCalledTimes(1);
+    expect(mockInitialConnects)
+      .toHaveBeenLastCalledWith(
+        handler.context.dbHost,
+        handler.context.dbUser,
+        handler.context.dbPassword,
+        handler.context.dbName,
+      );
     expect(mockThen).toHaveBeenCalledTimes(1);
     expect(mockNext).toHaveBeenCalledTimes(1);
   });

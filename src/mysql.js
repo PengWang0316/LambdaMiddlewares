@@ -5,7 +5,7 @@ export const initialMysqlPool = {
     const {
       dbHost, dbUser, dbPassword, dbName,
     } = handler.context;
-    initialPool(dbHost, dbUser, dbPassword, dbName);
+    initialPool(dbHost, dbUser, dbPassword, dbName, 1, { multipleStatements: true });
     next();
   },
 };

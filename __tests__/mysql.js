@@ -23,6 +23,8 @@ describe('initializeMysqlPool', () => {
         handler.context.dbUser,
         handler.context.dbPassword,
         handler.context.dbName,
+        1,
+        { multipleStatements: true },
       );
     expect(mockNext).toHaveBeenCalledTimes(1);
   });
